@@ -20,35 +20,38 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())  // Disable CSRF for APIs
-            .cors(withDefaults())  // Enable CORS with configuration source
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless session
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers("/api/brands/**", "/api/prescriptions/**").hasRole("ADMIN")
-                .requestMatchers("/api/medicines/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/cart/**", "/api/orders/**").hasRole("USER")
-                .anyRequest().authenticated())
-            .httpBasic(withDefaults());
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	    http
+	        .csrf(csrf -> csrf.disable())  // Disable CSRF for APIs
+	        //.cors(withDefaults())  // Enable CORS with configuration source
+	        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless session
+	        .authorizeHttpRequests(auth -> auth
+	            // Permit OPTIONS requests for preflight (CORS)
+	        	.corsConfigurationSource()
+	            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+	            .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+	            .requestMatchers("/api/brands/**", "/api/prescriptions/**").hasRole("ADMIN")
+	            .requestMatchers("/api/medicines/**").hasAnyRole("USER", "ADMIN")
+	            .requestMatchers("/api/cart/**", "/api/orders/**").hasRole("USER")
+	            .anyRequest().authenticated())
+	        .httpBasic(withDefaults());
 
-        return http.build();
-    }
+	    return http.build();
+	}
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration config = new CorsConfiguration();
+	    config.setAllowedOriginPatterns(Arrays.asList("*")); // Allow all origins for testing (replace with specific origins later)
+	    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+	    config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+	    config.setAllowCredentials(true);
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:8082"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        config.setAllowCredentials(true);
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", config);
+	    return source;
+	}
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
