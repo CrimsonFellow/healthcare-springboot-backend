@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        DOCKER_USERNAME = 'crimsony'  // Your Docker Hub username
-        DOCKER_PASSWORD = 'Sp@rky1225chance'  // Your Docker Hub password
+        DOCKER_USERNAME = 'crimsony'  
+        DOCKER_PASSWORD = 'Sp@rky1225chance'  
     }
     stages {
         stage('Checkout') {
@@ -12,7 +12,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                dir('healthcare-app') { // Change into the healthcare-app directory
+                dir('healthcare-app') { 
                     bat 'mvn clean package'
                 }
             }
