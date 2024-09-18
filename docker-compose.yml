@@ -10,6 +10,7 @@ services:
       - "3307:3306"
     networks:
       - healthcare-network
+    restart: always 
 
   springboot-app:
     image: springboot-healthcare-app
@@ -17,24 +18,20 @@ services:
     depends_on:
       - mysql-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/medicare_db?useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/medicare_db?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: sparky1225
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
     ports:
       - "8081:8081"
     networks:
       - healthcare-network
-
-  angular-frontend:
-    image: angular-healthcare-app
-    container_name: angular-frontend
-    ports:
-      - "8082:80"  # Mapping port 80 from the container to port 8082 on the host
-    networks:
-      - healthcare-network
+    restart: always  
 
 networks:
   healthcare-network:
     driver: bridge
+
 
 
