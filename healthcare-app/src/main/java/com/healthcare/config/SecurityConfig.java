@@ -14,63 +14,60 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    public SecurityConfig() {
-    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())  
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))  
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) 
+            .csrf(csrf -> csrf.disable())  // Disable CSRF for APIs
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // Enable CORS
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless session
 
-            // Authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()  
-                .requestMatchers("/api/brands/**", "/api/prescriptions/**", "/api/symptoms/**").hasRole("ADMIN") 
-                .requestMatchers("/api/medicines/**").hasAnyRole("USER", "ADMIN")  
-                .requestMatchers("/api/cart/**", "/api/orders/**").hasRole("USER")  
-                .anyRequest().authenticated()  
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()  // Public access to login and register
+                .requestMatchers("/api/brands/**", "/api/prescriptions/**", "/api/symptoms/**").hasRole("ADMIN")  // Admin access
+                .requestMatchers("/api/medicines/**").hasAnyRole("USER", "ADMIN")  // User and Admin access
+                .requestMatchers("/api/cart/**", "/api/orders/**").hasRole("USER")  // User access
+                .requestMatchers("OPTIONS", "/**").permitAll()  // Explicitly allow all OPTIONS requests
+                .anyRequest().authenticated()  // Authenticate any other requests
             )
 
-            // Basic Authentication
-            .httpBasic(withDefaults());  
+            .httpBasic(withDefaults());  // Use basic authentication for simplicity
 
         return http.build();
     }
 
-    // BCrypt password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // CORS configuration bean
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);  
-        config.addAllowedOriginPattern("http://localhost:4200");  
-        config.addAllowedHeader("*");  
-        config.addAllowedMethod("*"); 
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:8082"));  // Allow frontend at localhost:8082
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // Allow common methods
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));  // Allow common headers
+        config.setAllowCredentials(true);  // Allow credentials like Authorization headers
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", config);  // Apply this CORS configuration to all endpoints
         return source;
     }
 
-    // Authentication manager bean for custom authentication logic
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 }
+
+
+
+
 
 
 
