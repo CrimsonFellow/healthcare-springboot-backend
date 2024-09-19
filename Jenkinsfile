@@ -1,35 +1,45 @@
 pipeline {
     agent any
     stages {
-        stage('Build') {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from the repository
+                checkout scm
+            }
+        }
+        stage('Build Backend') {
+            steps {
+                // Run Maven build to generate the JAR file
+                bat 'cd backend && mvn clean package -DskipTests'
+            }
+        }
+        stage('Build and Deploy Docker Containers') {
             steps {
                 script {
-                    // Pull the latest code
-                    checkout scm
+                    // Build and run Docker containers
+                    bat '''
+                        docker-compose down --remove-orphans
+                        docker-compose up --build -d
+                    '''
                 }
-                // Build Docker containers
-                bat '''
-                    docker-compose down
-                    docker-compose up --build -d
-                '''
             }
         }
         stage('Test') {
             steps {
-                // Add any tests you want to run here, e.g., unit tests
-                bat 'docker-compose exec springboot-app mvn test'
+                // Placeholder for testing steps
+                echo 'Run tests here'
             }
         }
         stage('Deploy') {
             steps {
-                // Deploy to a server or another environment
-                bat 'echo "Deploying to production..."'
+                // Placeholder for deployment steps
+                echo 'Deploy to production here'
             }
         }
     }
     post {
         always {
-            // Cleanup Docker containers after the build
+            // Cleanup after build
             bat 'docker-compose down --remove-orphans'
         }
     }
