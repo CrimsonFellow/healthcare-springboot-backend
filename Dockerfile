@@ -1,14 +1,17 @@
-# Use OpenJDK 21 as the base image
-FROM openjdk:21-jdk-slim
-
-# Set the working directory inside the Docker container
+# Stage 1: Build Angular App
+FROM node:18 as angular-build
 WORKDIR /app
+COPY frontend/ .
+RUN npm install
+RUN npm run build -- --configuration production
 
-# Copy the JAR file from the target directory (built locally) to the container
-COPY healthcare-app/target/*.jar app.jar
+# Stage 2: Build and Run Spring Boot
+FROM openjdk:21-jdk-slim
+WORKDIR /app
+COPY backend/target/*.jar app.jar
 
-# Expose the default port for Spring Boot (8081)
+# Copy Angular app build files to Spring Boot static folder
+COPY --from=angular-build /app/dist/healthcare-app/browser /app/static/
+
 EXPOSE 8081
-
-# Run the Spring Boot application
 ENTRYPOINT ["java", "-jar", "app.jar"]
