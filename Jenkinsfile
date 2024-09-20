@@ -39,7 +39,7 @@ pipeline {
     }
     post {
         always {
-            // Cleanup after build
+            // Cleanup after build.
             bat 'docker-compose down --remove-orphans'
         }
     }
