@@ -8,6 +8,8 @@ RUN npm run build -- --configuration production
 # Stage 2: Build and Run Spring Boot
 FROM openjdk:21-jdk-slim
 WORKDIR /app
+COPY backend/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 COPY backend/target/*.jar app.jar
 
 # Copy Angular app build files to Spring Boot static folder
