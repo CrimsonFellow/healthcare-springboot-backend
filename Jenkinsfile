@@ -1,51 +1,49 @@
 pipeline {
     agent any
-    environment {
-        DOCKER_USERNAME = 'crimsony'  
-        DOCKER_PASSWORD = 'Sp@rky1225chance'  
-    }
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/CrimsonFellow/healthcare-springboot-backend.git'
+                // Checkout the code from the repository
+                checkout scm
             }
         }
-        stage('Build') {
+        stage('Build Backend') {
             steps {
-                dir('healthcare-app') { 
-                    bat 'mvn clean package'
-                }
+                // Run Maven build to generate the JAR file
+                bat 'cd backend && mvn clean package -DskipTests'
             }
         }
-        stage('Archive Artifacts') {
-            steps {
-                archiveArtifacts artifacts: 'healthcare-app/target/*.jar', fingerprint: true
-            }
-        }
-        stage('Docker Build') {
+        stage('Build and Deploy Docker Containers') {
             steps {
                 script {
-                    def backendImage = docker.build("${DOCKER_USERNAME}/springboot-backend")
+                    // Build and run Docker containers
+                    bat '''
+                        docker-compose down --remove-orphans
+                        docker-compose up --build -d
+                    '''
                 }
             }
         }
-        stage('Docker Login') {
+        stage('Test') {
             steps {
-                script {
-                    docker.withRegistry('', "${DOCKER_USERNAME}-credentials") {
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                    }
-                }
+                // Placeholder for testing steps
+                echo 'Run tests here'
             }
         }
-        stage('Docker Push') {
+        stage('Deploy') {
             steps {
-                script {
-                    def backendImage = docker.image("${DOCKER_USERNAME}/springboot-backend")
-                    backendImage.push('latest')
-                }
+                // Placeholder for deployment steps
+                echo 'Deploy to production here'
             }
         }
     }
+    post {
+        always {
+            // Cleanup after build
+            bat 'docker-compose down --remove-orphans'
+        }
+    }
 }
+
+
 
