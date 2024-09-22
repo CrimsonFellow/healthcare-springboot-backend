@@ -15,12 +15,10 @@ for i in $(seq 1 $MAX_RETRIES); do
     exec java -jar app.jar
   else
     echo "Database not yet available. Retrying in $RETRY_DELAY seconds..."
-    echo "Remaining retries: $((MAX_RETRIES - i))"
-    echo "Current date and time: $(date)"
-    echo "------------------------------------------"
     sleep $RETRY_DELAY
   fi
 done
 
 echo "Database connection could not be established after $MAX_RETRIES attempts. Exiting..."
 exit 1
+
